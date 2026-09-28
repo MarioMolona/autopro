@@ -1,0 +1,286 @@
+.dashboard-overview {
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  animation: fade-in 0.4s ease-out;
+}
+
+.dashboard-overview__header {
+  margin-bottom: var(--spacing-md);
+}
+
+.dashboard-overview__title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.dashboard-overview__subtitle {
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-base);
+}
+
+/* Stats Cards */
+.dashboard-overview__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.stat-card {
+  background: var(--color-neutral-0);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border-light);
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-card__info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-card__value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.stat-card__label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+}
+
+/* Content Sections */
+.dashboard-overview__content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--spacing-xl);
+}
+
+@media (max-width: 1024px) {
+  .dashboard-overview__content {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dashboard-section {
+  background: var(--color-neutral-0);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-light);
+  padding: var(--spacing-lg);
+}
+
+.dashboard-section__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.dashboard-section__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.dashboard-section__link {
+  background: none;
+  border: none;
+  color: var(--color-primary-600);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+
+.dashboard-section__link:hover {
+  background: var(--color-primary-50);
+}
+
+/* Activity Feed */
+.activity-feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.activity-item {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: flex-start;
+}
+
+.activity-item__avatar {
+  padding-top: 4px;
+}
+
+.activity-item__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--color-neutral-0);
+  box-shadow: 0 0 0 1px var(--color-border-light);
+}
+
+.activity-feed::before {
+  content: '';
+  position: absolute;
+  left: 31px;
+  top: 80px;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-border-light);
+  z-index: 0;
+}
+
+.activity-item__message {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-base);
+}
+
+.activity-item__time {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+/* Team List */
+.team-status-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.team-status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+
+.team-status-item:hover {
+  background: var(--color-neutral-50);
+}
+
+.team-status-item__info {
+  display: flex;
+  flex-direction: column;
+}
+
+.team-status-item__name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.team-status-item__role {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-indicator--online {
+  background-color: var(--color-success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success) 20%, transparent);
+}
+
+.status-indicator--offline {
+  background-color: var(--color-neutral-300);
+}
+
+/* AI Summary Section */
+.dashboard-section--ai-summary {
+  margin-top: var(--spacing-sm);
+  background: linear-gradient(to bottom right, var(--color-neutral-0), var(--color-primary-50));
+  border: 1px dashed var(--color-primary-300);
+}
+
+.dashboard-section__title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.ai-summary__icon {
+  color: var(--color-primary-500);
+}
+
+.ai-summary__badge {
+  background: var(--color-primary-500);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-2xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+.ai-summary__content {
+  padding: var(--spacing-md) 0;
+}
+
+.ai-summary__placeholder {
+  position: relative;
+  padding: var(--spacing-xl);
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-md);
+  text-align: center;
+  color: var(--color-text-tertiary);
+  font-style: italic;
+  overflow: hidden;
+}
+
+.ai-summary__shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

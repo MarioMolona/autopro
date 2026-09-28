@@ -1,0 +1,19 @@
+.app-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-layout__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.app-layout__content {
+  flex: 1;
+  overflow: auto;
+  background: var(--color-bg-app);
+}

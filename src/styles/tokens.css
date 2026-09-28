@@ -1,0 +1,142 @@
+/* ============================================
+   ContentFlow Pro — Design Tokens
+   Semantic CSS variables for consistent theming
+   ============================================ */
+
+:root {
+  /* ---- Primary Palette ---- */
+  --color-primary-50: #EBF3FC;
+  --color-primary-100: #D6E7F9;
+  --color-primary-200: #ADC9F3;
+  --color-primary-300: #85AAED;
+  --color-primary-400: #5C8BE7;
+  --color-primary-500: #4A90D9;
+  --color-primary-600: #3A73AE;
+  --color-primary-700: #2B5683;
+  --color-primary-800: #1D3A58;
+  --color-primary-900: #0E1D2C;
+
+  /* ---- Neutral Palette ---- */
+  --color-neutral-0: #FFFFFF;
+  --color-neutral-50: #F8F9FC;
+  --color-neutral-100: #F0F2F7;
+  --color-neutral-200: #E2E5ED;
+  --color-neutral-300: #C8CDD8;
+  --color-neutral-400: #9BA3B5;
+  --color-neutral-500: #6E7891;
+  --color-neutral-600: #4A5568;
+  --color-neutral-700: #2D3748;
+  --color-neutral-800: #1A202C;
+  --color-neutral-900: #0D1117;
+
+  /* ---- Semantic Colors ---- */
+  --color-success: #38C97A;
+  --color-success-bg: #E6F9ED;
+  --color-warning: #F5A623;
+  --color-warning-bg: #FEF3E2;
+  --color-danger: #E74C3C;
+  --color-danger-bg: #FCE8E6;
+  --color-info: #3498DB;
+  --color-info-bg: #E8F4FD;
+
+  /* ---- Priority Colors ---- */
+  --color-priority-urgent: #E74C3C;
+  --color-priority-high: #F5A623;
+  --color-priority-medium: #4A90D9;
+  --color-priority-low: #38C97A;
+
+  /* ---- Column Accent Colors ---- */
+  --color-column-todo: #4A90D9;
+  --color-column-progress: #F5A623;
+  --color-column-review: #E74C3C;
+  --color-column-done: #38C97A;
+  --color-column-default: #9BA3B5;
+
+  /* ---- Surface & Background ---- */
+  --color-bg-app: #F0F2F7;
+  --color-bg-sidebar: #FFFFFF;
+  --color-bg-card: #FFFFFF;
+  --color-bg-column: #F4F6FA;
+  --color-bg-header: #FFFFFF;
+  --color-bg-modal-overlay: rgba(13, 17, 23, 0.5);
+
+  /* ---- Text ---- */
+  --color-text-primary: #1A202C;
+  --color-text-secondary: #6E7891;
+  --color-text-tertiary: #9BA3B5;
+  --color-text-inverse: #FFFFFF;
+  --color-text-link: #4A90D9;
+
+  /* ---- Borders ---- */
+  --color-border-light: #E2E5ED;
+  --color-border-medium: #C8CDD8;
+  --color-border-active: #4A90D9;
+
+  /* ---- Typography ---- */
+  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-xs: 0.6875rem;    /* 11px */
+  --font-size-sm: 0.75rem;      /* 12px */
+  --font-size-md: 0.8125rem;    /* 13px */
+  --font-size-base: 0.875rem;   /* 14px */
+  --font-size-lg: 1rem;         /* 16px */
+  --font-size-xl: 1.125rem;     /* 18px */
+  --font-size-2xl: 1.375rem;    /* 22px */
+  --font-size-3xl: 1.75rem;     /* 28px */
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.25;
+  --line-height-base: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* ---- Spacing ---- */
+  --spacing-2xs: 0.125rem;  /* 2px */
+  --spacing-xs: 0.25rem;    /* 4px */
+  --spacing-sm: 0.5rem;     /* 8px */
+  --spacing-md: 0.75rem;    /* 12px */
+  --spacing-base: 1rem;     /* 16px */
+  --spacing-lg: 1.25rem;    /* 20px */
+  --spacing-xl: 1.5rem;     /* 24px */
+  --spacing-2xl: 2rem;      /* 32px */
+  --spacing-3xl: 2.5rem;    /* 40px */
+  --spacing-4xl: 3rem;      /* 48px */
+
+  /* ---- Border Radius ---- */
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-md: 0.5rem;    /* 8px */
+  --radius-lg: 0.75rem;   /* 12px */
+  --radius-xl: 1rem;      /* 16px */
+  --radius-full: 9999px;
+
+  /* ---- Shadows ---- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.08), 0 4px 6px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  /* ---- Transitions ---- */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 350ms ease;
+
+  /* ---- Layout Dimensions ---- */
+  --sidebar-width: 220px;
+  --sidebar-width-collapsed: 64px;
+  --header-height: 64px;
+  --subnav-height: 48px;
+  --column-min-width: 280px;
+  --column-max-width: 320px;
+
+  /* ---- Z-Index Scale ---- */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+}
