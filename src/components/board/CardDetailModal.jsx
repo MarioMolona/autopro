@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { Calendar, Clock, User, Tag, MessageSquare, Paperclip, Activity, Send, Plus, Image, FileText, Maximize2, X } from 'lucide-react';
-import { getLabelById } from '../../data/mockData';
 import Modal from '../ui/Modal';
 import Badge from '../ui/Badge';
 import Avatar from '../ui/Avatar';
@@ -131,7 +130,7 @@ export default function CardDetailModal({ card, onClose }) {
       name: f.name, 
       size: f.size, 
       type: f.type, 
-      id: Date.now() + Math.random(),
+      id: crypto.randomUUID(),
       url: URL.createObjectURL(f),
       file: f
     }));
@@ -151,7 +150,7 @@ export default function CardDetailModal({ card, onClose }) {
   const rawLabels = currentCard.labels || [];
 
   const assignees = rawAssignees.map(id => allUsers.find(u => u.id === id)).filter(Boolean);
-  const labels = rawLabels.map(getLabelById).filter(Boolean);
+  const labels = rawLabels.map(id => allLabels.find(l => l.id === id)).filter(Boolean);
   const priority = PRIORITY_CONFIG[currentCard.priority];
   const currentColumn = columns.find((c) => c.id === currentCard.columnId);
   const cardComments = comments.filter((c) => c.cardId === currentCard.id);
@@ -249,8 +248,7 @@ export default function CardDetailModal({ card, onClose }) {
       const currentAttachments = currentCard.attachments || [];
       const newAttachments = [...currentAttachments, ...uploadedAttachments];
       updateCard(currentCard.id, { 
-        attachments: newAttachments,
-        attachmentsCount: newAttachments.length
+        attachments: newAttachments
       });
       
       setPendingAttachments([]);

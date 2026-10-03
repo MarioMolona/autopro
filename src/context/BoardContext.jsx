@@ -50,12 +50,55 @@ export function BoardProvider({ children }) {
 
   useEffect(() => {
     fetchBoardData();
+
+    // Supabase Realtime Subscriptions
+    const channel = supabase.channel('board-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cards' }, payload => {
+        if (payload.eventType === 'INSERT') {
+          setCards(prev => {
+            if (prev.find(c => c.id === payload.new.id)) return prev;
+            return [...prev, { ...payload.new, assignees: [], labels: [] }];
+          });
+        } else if (payload.eventType === 'UPDATE') {
+          setCards(prev => prev.map(c => c.id === payload.new.id ? { ...c, ...payload.new } : c));
+        } else if (payload.eventType === 'DELETE') {
+          setCards(prev => prev.filter(c => c.id !== payload.old.id));
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'columns' }, payload => {
+        if (payload.eventType === 'INSERT') {
+          setColumns(prev => {
+            if (prev.find(c => c.id === payload.new.id)) return prev;
+            return [...prev, payload.new].sort((a,b) => a.position - b.position);
+          });
+        } else if (payload.eventType === 'UPDATE') {
+          setColumns(prev => prev.map(c => c.id === payload.new.id ? { ...c, ...payload.new } : c).sort((a,b) => a.position - b.position));
+        } else if (payload.eventType === 'DELETE') {
+          setColumns(prev => prev.filter(c => c.id !== payload.old.id));
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, payload => {
+        if (payload.eventType === 'INSERT') {
+          setComments(prev => {
+            if (prev.find(c => c.id === payload.new.id)) return prev;
+            return [...prev, payload.new];
+          });
+        } else if (payload.eventType === 'UPDATE') {
+          setComments(prev => prev.map(c => c.id === payload.new.id ? payload.new : c));
+        } else if (payload.eventType === 'DELETE') {
+          setComments(prev => prev.filter(c => c.id !== payload.old.id));
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [fetchBoardData]);
 
   const addCard = useCallback(async (columnId, cardData) => {
-    const newCardId = `card-${Date.now()}`;
+    const tempId = crypto.randomUUID();
     const newCard = {
-      id: newCardId,
       columnId,
       position: cards.filter(c => c.columnId === columnId).length,
       createdAt: new Date().toISOString(),
@@ -67,17 +110,26 @@ export function BoardProvider({ children }) {
       ...cardData,
     };
 
-    // Separate arrays for insertion
     const { assignees, labels, ...dbCard } = newCard;
-
-    await supabase.from('cards').insert(dbCard);
     
-    // Optimistic update
-    setCards((prev) => [...prev, { ...dbCard, assignees: assignees || [], labels: labels || [] }]);
-    return newCard;
+    // Optimistic UI
+    setCards((prev) => [...prev, { ...dbCard, id: tempId, assignees: assignees || [], labels: labels || [] }]);
+
+    const { data, error } = await supabase.from('cards').insert(dbCard).select().single();
+    if (error) {
+      setCards(prev => prev.filter(c => c.id !== tempId)); // Rollback
+      alert('Error al crear la tarjeta: ' + error.message);
+      return null;
+    }
+    
+    // Replace temp ID with real ID
+    setCards(prev => prev.map(c => c.id === tempId ? { ...c, id: data.id, assignees: assignees || [], labels: labels || [] } : c));
+    return data;
   }, [cards]);
 
   const updateCard = useCallback(async (cardId, updates) => {
+    const prevCards = [...cards];
+    
     // Optimistic update
     setCards((prev) =>
       prev.map((card) => (card.id === cardId ? { ...card, ...updates } : card))
@@ -88,38 +140,61 @@ export function BoardProvider({ children }) {
     delete dbUpdates.labels;
     
     if (Object.keys(dbUpdates).length > 0) {
-      await supabase.from('cards').update(dbUpdates).eq('id', cardId);
+      const { error } = await supabase.from('cards').update(dbUpdates).eq('id', cardId);
+      if (error) {
+        setCards(prevCards); // Rollback
+        alert('Error al actualizar la tarjeta: ' + error.message);
+      }
     }
-  }, []);
+  }, [cards]);
 
   const moveCard = useCallback(async (cardId, targetColumnId, targetPosition) => {
+    const prevCards = [...cards];
+    
+    // Optimistic update
     setCards((prev) => {
-      const updated = prev.map((card) => {
+      return prev.map((card) => {
         if (card.id !== cardId) return card;
         return { ...card, columnId: targetColumnId, position: targetPosition };
       });
-      return updated;
     });
-    await supabase.from('cards').update({ columnId: targetColumnId, position: targetPosition }).eq('id', cardId);
-  }, []);
+    
+    const { error } = await supabase.from('cards').update({ columnId: targetColumnId, position: targetPosition }).eq('id', cardId);
+    if (error) {
+      setCards(prevCards); // Rollback
+      alert('Error al mover la tarjeta: ' + error.message);
+    }
+  }, [cards]);
 
   const deleteCard = useCallback(async (cardId) => {
+    const prevCards = [...cards];
     setCards((prev) => prev.filter((card) => card.id !== cardId));
-    await supabase.from('cards').delete().eq('id', cardId);
-  }, []);
+    
+    const { error } = await supabase.from('cards').delete().eq('id', cardId);
+    if (error) {
+      setCards(prevCards); // Rollback
+      alert('Error al eliminar la tarjeta: ' + error.message);
+    }
+  }, [cards]);
 
   const archiveCard = useCallback(async (cardId) => {
+    const prevCards = [...cards];
     setCards((prev) =>
       prev.map((card) =>
         card.id === cardId ? { ...card, archived: true } : card
       )
     );
-    await supabase.from('cards').update({ archived: true }).eq('id', cardId);
-  }, []);
+    
+    const { error } = await supabase.from('cards').update({ archived: true }).eq('id', cardId);
+    if (error) {
+      setCards(prevCards); // Rollback
+      alert('Error al archivar la tarjeta: ' + error.message);
+    }
+  }, [cards]);
 
   const uploadFile = async (file) => {
     const fileName = `${Date.now()}-${file.name}`;
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('attachments')
       .upload(fileName, file);
     
@@ -136,43 +211,50 @@ export function BoardProvider({ children }) {
   };
 
   const addComment = useCallback(async (cardId, userId, content, attachments = []) => {
+    const tempId = crypto.randomUUID();
     const newComment = {
-      id: `comment-${Date.now()}`,
       cardId,
       userId,
       content,
-      attachments, // Expecting clean objects (no File pointers)
+      attachments, 
       createdAt: new Date().toISOString()
     };
-    const { error } = await supabase.from('comments').insert(newComment);
+    
+    setComments((prev) => [...prev, { ...newComment, id: tempId }]);
+    
+    const { data, error } = await supabase.from('comments').insert(newComment).select().single();
     if (error) {
-      console.error('Error inserting comment:', error);
+      setComments(prev => prev.filter(c => c.id !== tempId)); // Rollback
+      alert('Error al añadir el comentario: ' + error.message);
       throw error;
     }
-    setComments((prev) => [...prev, newComment]);
     
-    const targetCard = cards.find(c => c.id === cardId);
-    if(targetCard) {
-      const newCount = (targetCard.commentsCount || 0) + 1;
-      await supabase.from('cards').update({ commentsCount: newCount }).eq('id', cardId);
-      setCards((prev) =>
-        prev.map((card) =>
-          card.id === cardId ? { ...card, commentsCount: newCount } : card
-        )
-      );
-    }
-    return newComment;
-  }, [cards]);
+    setComments((prev) => prev.map(c => c.id === tempId ? data : c));
+    // Counters are automatically updated via Postgres triggers, and reflected via Realtime
+    return data;
+  }, []);
 
   const updateComment = useCallback(async (commentId, content) => {
+    const prevComments = [...comments];
     setComments((prev) => prev.map((c) => c.id === commentId ? { ...c, content } : c));
-    await supabase.from('comments').update({ content }).eq('id', commentId);
-  }, []);
+    
+    const { error } = await supabase.from('comments').update({ content }).eq('id', commentId);
+    if (error) {
+      setComments(prevComments); // Rollback
+      alert('Error al actualizar el comentario: ' + error.message);
+    }
+  }, [comments]);
 
   const deleteComment = useCallback(async (commentId) => {
+    const prevComments = [...comments];
     setComments((prev) => prev.filter((c) => c.id !== commentId));
-    await supabase.from('comments').delete().eq('id', commentId);
-  }, []);
+    
+    const { error } = await supabase.from('comments').delete().eq('id', commentId);
+    if (error) {
+      setComments(prevComments); // Rollback
+      alert('Error al eliminar el comentario: ' + error.message);
+    }
+  }, [comments]);
 
   const updateLabel = useCallback(async (labelId, updates) => {
     setLabels((prev) => prev.map((l) => l.id === labelId ? { ...l, ...updates } : l));
@@ -180,28 +262,45 @@ export function BoardProvider({ children }) {
   }, []);
 
   const clearColumn = useCallback(async (columnId) => {
+    const prevCards = [...cards];
     setCards((prev) => prev.filter((card) => card.columnId !== columnId));
-    await supabase.from('cards').delete().eq('columnId', columnId);
-  }, []);
+    
+    const { error } = await supabase.from('cards').delete().eq('columnId', columnId);
+    if (error) {
+      setCards(prevCards); // Rollback
+      alert('Error al limpiar la columna: ' + error.message);
+    }
+  }, [cards]);
 
   const deleteColumn = useCallback(async (columnId) => {
+    const prevCols = [...columns];
     setColumns((prev) => prev.filter((col) => col.id !== columnId));
-    await supabase.from('columns').delete().eq('id', columnId);
-  }, []);
+    
+    const { error } = await supabase.from('columns').delete().eq('id', columnId);
+    if (error) {
+      setColumns(prevCols); // Rollback
+      alert('Error al eliminar la columna: ' + error.message);
+    }
+  }, [columns]);
 
   const updateColumn = useCallback(async (columnId, name) => {
+    const prevCols = [...columns];
     setColumns((prev) => prev.map((col) => col.id === columnId ? { ...col, name } : col));
-    await supabase.from('columns').update({ name }).eq('id', columnId);
-  }, []);
+    
+    const { error } = await supabase.from('columns').update({ name }).eq('id', columnId);
+    if (error) {
+      setColumns(prevCols); // Rollback
+      alert('Error al actualizar la columna: ' + error.message);
+    }
+  }, [columns]);
 
   const duplicateColumn = useCallback(async (columnId) => {
     const colToDuplicate = columns.find(c => c.id === columnId);
     if (!colToDuplicate) return;
     
-    const newColId = `col-${Date.now()}`;
+    const prevCols = [...columns];
     const newPosition = colToDuplicate.position + 1;
     
-    // Update positions of columns after this one
     const updatedColumns = columns.map(col => {
       if (col.position >= newPosition) {
         return { ...col, position: col.position + 1 };
@@ -209,36 +308,58 @@ export function BoardProvider({ children }) {
       return col;
     });
     
-    const newCol = { ...colToDuplicate, id: newColId, name: `${colToDuplicate.name} (Copia)`, position: newPosition };
+    const tempId = crypto.randomUUID();
+    const newCol = { ...colToDuplicate, id: tempId, name: `${colToDuplicate.name} (Copia)`, position: newPosition };
     
-    // Final state
     const finalColumns = [...updatedColumns, newCol].sort((a,b) => a.position - b.position);
     setColumns(finalColumns);
     
-    // Sync to DB
-    await Promise.all([
-      supabase.from('columns').insert(newCol),
+    const { id, ...dbCol } = newCol;
+    
+    const promises = [
+      supabase.from('columns').insert(dbCol).select().single(),
       ...updatedColumns.filter(c => c.position > colToDuplicate.position).map(c => 
         supabase.from('columns').update({ position: c.position }).eq('id', c.id)
       )
-    ]);
+    ];
+
+    const results = await Promise.all(promises);
+    const insertResult = results[0];
+    const errors = results.filter(r => r.error);
+    
+    if (errors.length > 0) {
+      setColumns(prevCols); // Rollback
+      alert('Error al duplicar la columna: ' + errors[0].error.message);
+    } else {
+      setColumns(prev => prev.map(c => c.id === tempId ? insertResult.data : c));
+    }
   }, [columns]);
 
   const moveColumn = useCallback(async (columnId, newPosition) => {
-    setColumns((prev) => {
-      const sorted = [...prev].sort((a,b) => a.position - b.position);
-      const oldIndex = sorted.findIndex(c => c.id === columnId);
-      const [movedCol] = sorted.splice(oldIndex, 1);
-      sorted.splice(newPosition, 0, movedCol);
-      
-      const updated = sorted.map((c, i) => ({ ...c, position: i }));
-      // Sync each position change to DB
-      updated.forEach(async (c) => {
-        await supabase.from('columns').update({ position: c.position }).eq('id', c.id);
-      });
-      return updated;
-    });
-  }, []);
+    const prevColumns = [...columns];
+    
+    const sorted = [...columns].sort((a,b) => a.position - b.position);
+    const oldIndex = sorted.findIndex(c => c.id === columnId);
+    if (oldIndex === -1) return;
+    
+    const [movedCol] = sorted.splice(oldIndex, 1);
+    sorted.splice(newPosition, 0, movedCol);
+    
+    const updated = sorted.map((c, i) => ({ ...c, position: i }));
+    setColumns(updated); // Optimistic UI
+    
+    try {
+      const promises = updated.map(c => 
+        supabase.from('columns').update({ position: c.position }).eq('id', c.id)
+      );
+      const results = await Promise.all(promises);
+      const error = results.find(r => r.error)?.error;
+      if (error) throw error;
+    } catch (err) {
+      setColumns(prevColumns); // Rollback
+      alert('Error al mover la columna: ' + err.message);
+    }
+  }, [columns]);
 
   const getColumnsWithCards = useCallback(() => {
     return columns.map((column) => {
@@ -276,7 +397,6 @@ export function BoardProvider({ children }) {
       addComment,
       updateComment,
       deleteComment,
-      updateLabel,
       updateLabel,
       clearColumn,
       deleteColumn,

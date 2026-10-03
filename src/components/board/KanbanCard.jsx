@@ -2,7 +2,6 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { MoreVertical, Calendar, MessageSquare, Paperclip, CheckSquare } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { getLabelById } from '../../data/mockData';
 import Avatar from '../ui/Avatar';
 import Badge from '../ui/Badge';
 import { useBoard } from '../../context/BoardContext';
@@ -21,11 +20,13 @@ const PRIORITY_CONFIG = {
  * Shows title, date, labels, assignee avatars, and activity counters.
  */
 export default function KanbanCard({ card, index }) {
-  const { setSelectedCard, deleteCard, addCard } = useBoard();
+  const { setSelectedCard, deleteCard, addCard, labels: contextLabels } = useBoard();
   const { activeRole, allUsers } = useAuth();
   const isAdmin = activeRole === 'admin';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
+
+  const getLabel = (id) => contextLabels.find(l => l.id === id);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -57,7 +58,7 @@ export default function KanbanCard({ card, index }) {
 
   const priority = PRIORITY_CONFIG[card.priority];
   const assignees = card.assignees.map(id => allUsers.find(u => u.id === id)).filter(Boolean);
-  const labels = card.labels.map(getLabelById).filter(Boolean);
+  const labels = card.labels.map(getLabel).filter(Boolean);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
