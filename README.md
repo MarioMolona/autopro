@@ -50,7 +50,14 @@ npm install
    supabase/migrations/001_esquema_base.sql
    ```
 
-3. (Opcional) Datos de ejemplo: `node seed.js`
+3. (Opcional) Datos de ejemplo:
+
+   ```bash
+   npm run seed:check   # verifica conexión y credenciales, sin escribir nada
+   npm run seed         # inserta los datos de ejemplo
+   ```
+
+   El seed lee las mismas variables del `.env`. Si falla por permisos (RLS), ejecútalo con una sesión autenticada o desde el servidor con la llave secreta en un archivo aparte que nunca se commitea.
 
 4. Arranca:
 
@@ -106,9 +113,10 @@ Pendiente:
 
 ## Notas de seguridad
 
-- Las llaves viven en variables de entorno; `.env` está en `.gitignore`.
+- Las llaves viven en variables de entorno; `.env` está en `.gitignore` y en el servidor tiene permisos `600`.
+- Ningún archivo del repo lleva URL ni llaves hardcodeadas.
 - La clave pública VAPID se obtiene desde la Edge Function `get-vapid-public-key`, no se hornea en el bundle.
-- `seed.js` todavía lleva la URL y la publishable key hardcodeadas: son claves públicas, pero conviene moverlas a variables de entorno.
+- `seed.js` rechaza arrancar si detecta una llave secreta: solo acepta la publishable.
 
 ## Agentes
 
