@@ -51,7 +51,7 @@ export async function subscribeToPush(userId) {
 
   // 3. Save to database
   const subJSON = subscription.toJSON();
-  const { error: dbError } = await supabase.from('pushSubscriptions').upsert({
+  const { error: dbError } = await supabase.from('push_subscriptions').upsert({
     userId,
     endpoint: subJSON.endpoint,
     p256dh: subJSON.keys.p256dh,

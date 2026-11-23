@@ -116,6 +116,23 @@ export function AuthProvider({ children }) {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
   }, [currentUser]);
 
+  // Crea una notificación para otro usuario (menciones, asignaciones, etc.)
+  const insertNotification = useCallback(async (userId, type, payload) => {
+    const { error } = await supabase.from('notifications').insert({
+      id: `notif-${crypto.randomUUID()}`,
+      userId,
+      type,
+      payload,
+      isRead: false,
+      createdAt: new Date().toISOString(),
+    });
+    if (error) {
+      console.error('Error al crear la notificación:', error.message);
+      return false;
+    }
+    return true;
+  }, []);
+
   const updateUserProfile = useCallback(async (updates) => {
     if (!currentUser) return;
     const { error } = await supabase.from('users').update(updates).eq('id', currentUser.id);
@@ -137,6 +154,7 @@ export function AuthProvider({ children }) {
       unreadNotificationsCount,
       markNotificationAsRead,
       markAllNotificationsAsRead,
+      insertNotification,
       updateUserProfile,
       allUsers,
     }),
@@ -152,6 +170,7 @@ export function AuthProvider({ children }) {
       unreadNotificationsCount,
       markNotificationAsRead,
       markAllNotificationsAsRead,
+      insertNotification,
       updateUserProfile,
       allUsers,
     ]
