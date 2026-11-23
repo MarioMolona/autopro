@@ -242,8 +242,9 @@ export default function CardDetailModal({ card, onClose }) {
       }
     }
 
+    let commentData;
     try {
-      const commentData = await addComment(card.id, currentUser.id, commentText, uploadedAttachments);
+      commentData = await addComment(card.id, currentUser.id, commentText, uploadedAttachments);
       
       const currentAttachments = currentCard.attachments || [];
       const newAttachments = [...currentAttachments, ...uploadedAttachments];
@@ -256,6 +257,7 @@ export default function CardDetailModal({ card, onClose }) {
     } catch (err) {
       alert("Hubo un error al publicar el comentario. Por favor intenta de nuevo.");
       console.error(err);
+      return;
     } finally {
       setIsUploading(false);
     }

@@ -41,11 +41,11 @@ export function AuthProvider({ children }) {
       setCurrentUser(data);
       setActiveRole(data.role);
       setIsAuthenticated(true);
-      await fetchNotifications(data.id);
+      await Promise.all([fetchNotifications(data.id), fetchUsers()]);
     } else {
       console.warn('No user profile found for email:', authUser.email);
     }
-  }, [fetchNotifications]);
+  }, [fetchNotifications, fetchUsers]);
 
   // Initialize session and auth state listener
   useEffect(() => {
@@ -116,6 +116,18 @@ export function AuthProvider({ children }) {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
   }, [currentUser]);
 
+  const insertNotification = useCallback(async (userId, type, payload) => {
+    const { error } = await supabase.from('notifications').insert({
+      id: `notif-${Date.now()}-${userId}`,
+      userId,
+      type,
+      payload,
+      isRead: false,
+      createdAt: new Date().toISOString(),
+    });
+    if (error) console.error('Error al crear notificación:', error.message);
+  }, []);
+
   const updateUserProfile = useCallback(async (updates) => {
     if (!currentUser) return;
     const { error } = await supabase.from('users').update(updates).eq('id', currentUser.id);
@@ -138,6 +150,7 @@ export function AuthProvider({ children }) {
       markNotificationAsRead,
       markAllNotificationsAsRead,
       updateUserProfile,
+      insertNotification,
       allUsers,
     }),
     [
@@ -153,6 +166,7 @@ export function AuthProvider({ children }) {
       markNotificationAsRead,
       markAllNotificationsAsRead,
       updateUserProfile,
+      insertNotification,
       allUsers,
     ]
   );
