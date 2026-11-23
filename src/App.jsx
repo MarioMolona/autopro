@@ -3,6 +3,7 @@ import { BoardProvider } from './context/BoardContext';
 import { ViewProvider } from './context/ViewContext';
 import BoardPage from './pages/BoardPage';
 import LoginPage from './pages/LoginPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import './styles/global.css';
 
 /**
@@ -10,7 +11,11 @@ import './styles/global.css';
  * The entire app state is managed through contexts.
  */
 function AppRoutes() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isRecovery } = useAuth();
+
+  if (isRecovery) {
+    return <ResetPasswordPage />;
+  }
 
   if (!isAuthenticated) {
     return <LoginPage />;

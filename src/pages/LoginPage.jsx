@@ -8,7 +8,9 @@ import './LoginPage.css';
  * Uses mock auth — any valid email from mock data logs in.
  */
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, resetPassword } = useAuth();
+  const [mode, setMode] = useState('login');
+  const [info, setInfo] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -24,6 +26,17 @@ export default function LoginPage() {
     if (!success) {
       setError('Credenciales incorrectas o usuario no registrado');
     }
+    setIsLoading(false);
+  };
+
+  const handleReset = async (e) => {
+    e.preventDefault();
+    setError('');
+    setInfo('');
+    setIsLoading(true);
+    const err = await resetPassword(email);
+    if (err) setError('No se pudo enviar el correo: ' + err);
+    else setInfo('Si el correo está registrado, te enviamos un enlace para restablecer tu contraseña.');
     setIsLoading(false);
   };
 
@@ -50,6 +63,27 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {mode === 'reset' ? (
+          <form className="login-card__form" onSubmit={handleReset}>
+            {error && <div className="login-card__error" role="alert">{error}</div>}
+            {info && <div className="login-card__error" role="status" style={{ background: 'var(--color-success-bg, #e8f7ee)', color: '#1a7f45' }}>{info}</div>}
+            <div className="login-card__field">
+              <label className="login-card__label" htmlFor="reset-email">Correo electrónico</label>
+              <div className="login-card__input-wrapper">
+                <Mail size={18} className="login-card__input-icon" />
+                <input id="reset-email" type="email" className="login-card__input" placeholder="tu@email.com"
+                  value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+              </div>
+            </div>
+            <button type="submit" className="login-card__submit" disabled={isLoading}>
+              {isLoading ? <span className="login-card__spinner" /> : 'Enviar enlace'}
+            </button>
+            <button type="button" className="login-card__google-btn"
+              onClick={() => { setMode('login'); setError(''); setInfo(''); }}>
+              Volver a iniciar sesión
+            </button>
+          </form>
+        ) : (
         <form className="login-card__form" onSubmit={handleSubmit}>
           {error && (
             <div className="login-card__error" role="alert">
@@ -103,6 +137,14 @@ export default function LoginPage() {
           </div>
 
           <button
+            type="button"
+            onClick={() => { setMode('reset'); setError(''); setInfo(''); }}
+            style={{ background: 'none', border: 'none', color: 'var(--color-primary-600, #2563eb)', cursor: 'pointer', fontSize: '13px', textAlign: 'right', padding: 0 }}
+          >
+            ¿Olvidaste tu contraseña?
+          </button>
+
+          <button
             type="submit"
             className="login-card__submit"
             disabled={isLoading}
@@ -132,6 +174,7 @@ export default function LoginPage() {
             <span>Continuar con Google</span>
           </button>
         </form>
+        )}
 
       </div>
     </div>

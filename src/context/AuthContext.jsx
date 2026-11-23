@@ -18,6 +18,7 @@ export function AuthProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isRecovery, setIsRecovery] = useState(false);
 
   const fetchUsers = useCallback(async () => {
     const { data } = await supabase.from('users').select('*');
@@ -59,7 +60,8 @@ export function AuthProvider({ children }) {
       
       // 2. Listen for auth changes
       const { data } = supabase.auth.onAuthStateChange(
-        async (_event, newSession) => {
+        async (event, newSession) => {
+          if (event === 'PASSWORD_RECOVERY') setIsRecovery(true);
           if (newSession?.user) {
             await handleSessionUser(newSession.user);
           } else {
@@ -87,6 +89,19 @@ export function AuthProvider({ children }) {
       return false;
     }
     return true;
+  }, []);
+
+  const resetPassword = useCallback(async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    });
+    return error ? error.message : null;
+  }, []);
+
+  const updatePassword = useCallback(async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (!error) setIsRecovery(false);
+    return error ? error.message : null;
   }, []);
 
   const logout = useCallback(async () => {
@@ -145,6 +160,9 @@ export function AuthProvider({ children }) {
       loading,
       login,
       logout,
+      isRecovery,
+      resetPassword,
+      updatePassword,
       notifications,
       unreadNotificationsCount,
       markNotificationAsRead,
@@ -161,6 +179,9 @@ export function AuthProvider({ children }) {
       loading,
       login,
       logout,
+      isRecovery,
+      resetPassword,
+      updatePassword,
       notifications,
       unreadNotificationsCount,
       markNotificationAsRead,
