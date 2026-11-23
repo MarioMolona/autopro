@@ -1,5 +1,7 @@
 import { X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useState, useEffect } from 'react';
+import { checkPushSubscription, subscribeToPush, testPushNotification } from '../../utils/push';
 import './SettingsModal.css';
 
 /**
@@ -8,6 +10,37 @@ import './SettingsModal.css';
  */
 export default function SettingsModal({ isOpen, onClose }) {
   const { currentUser, activeRole, setActiveRole } = useAuth();
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [loadingPush, setLoadingPush] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      checkPushSubscription().then(setIsSubscribed).catch(console.error);
+    }
+  }, [isOpen]);
+
+  const handleSubscribe = async () => {
+    setLoadingPush(true);
+    try {
+      await subscribeToPush(currentUser.id);
+      setIsSubscribed(true);
+    } catch (err) {
+      alert(err.message || 'Error al suscribirse a notificaciones.');
+    } finally {
+      setLoadingPush(false);
+    }
+  };
+
+  const handleTestPush = async () => {
+    setLoadingPush(true);
+    try {
+      await testPushNotification(currentUser.id);
+    } catch (err) {
+      alert('Error al enviar notificación de prueba.');
+    } finally {
+      setLoadingPush(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -63,15 +96,36 @@ export default function SettingsModal({ isOpen, onClose }) {
           </section>
 
           <section className="settings-modal__section">
-            <h3 className="settings-modal__section-title">General</h3>
+            <h3 className="settings-modal__section-title">Notificaciones Push</h3>
+            <p className="settings-modal__section-desc" style={{marginBottom: '1rem'}}>
+              Recibe notificaciones en este dispositivo, incluso con la app cerrada.
+            </p>
             <div className="settings-modal__field settings-modal__field--row">
-              <label>Notificaciones de escritorio</label>
-              <input type="checkbox" defaultChecked />
+              <label>Notificaciones Push nativas</label>
+              {isSubscribed ? (
+                <span style={{ color: 'var(--color-primary-dark)', fontWeight: 'bold' }}>Activadas ✓</span>
+              ) : (
+                <button 
+                  className="settings-modal__btn settings-modal__btn--primary" 
+                  onClick={handleSubscribe} 
+                  disabled={loadingPush}
+                >
+                  {loadingPush ? 'Activando...' : 'Activar'}
+                </button>
+              )}
             </div>
-            <div className="settings-modal__field settings-modal__field--row">
-              <label>Tema oscuro (Próximamente)</label>
-              <input type="checkbox" disabled />
-            </div>
+            
+            {isSubscribed && (
+              <div className="settings-modal__field" style={{marginTop: '1rem'}}>
+                <button 
+                  className="settings-modal__btn" 
+                  onClick={handleTestPush}
+                  disabled={loadingPush}
+                >
+                  Probar notificación
+                </button>
+              </div>
+            )}
           </section>
         </div>
 

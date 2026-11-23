@@ -1,9 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Consider adding these to a .env file later
-// For now, we will use placeholders that need to be replaced with 
-// real keys from mcp_supabase-mcp-server_get_publishable_keys
-const supabaseUrl = 'https://kfxnpnwpdgdswvywjnhu.supabase.co';
-const supabaseKey = 'sb_publishable_17WECf0vg2z6g1ltPuGkHw_WKyjKRkn';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Supabase credentials are missing. Please check your .env file.');
+}
 
 export const supabase = createClient(supabaseUrl, supabaseKey);

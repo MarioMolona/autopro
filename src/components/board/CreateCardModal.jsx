@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useBoard } from '../../context/BoardContext';
 import { useAuth } from '../../context/AuthContext';
-import { MOCK_LABELS } from '../../data/mockData';
 import Modal from '../ui/Modal';
 import Badge from '../ui/Badge';
 import Avatar from '../ui/Avatar';
@@ -19,7 +18,7 @@ const PRIORITY_OPTIONS = [
  * Collects title, description, priority, due date, assignees, and labels.
  */
 export default function CreateCardModal({ columnId, onClose }) {
-  const { addCard, columns } = useBoard();
+  const { addCard, columns, labels } = useBoard();
   const { currentUser, allUsers } = useAuth();
 
   const [title, setTitle] = useState('');
@@ -151,7 +150,7 @@ export default function CreateCardModal({ columnId, onClose }) {
         <div className="create-card-form__field">
           <label className="create-card-form__label">Etiquetas</label>
           <div className="create-card-form__chips">
-            {MOCK_LABELS.map((label) => (
+            {labels.map((label) => (
               <button
                 key={label.id}
                 type="button"
